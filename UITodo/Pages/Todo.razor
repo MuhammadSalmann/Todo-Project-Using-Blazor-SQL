@@ -1,0 +1,104 @@
+﻿@page "/counter"
+
+<PageTitle>Todo</PageTitle>
+<link rel="stylesheet" href="todo_style.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<div class="main-box">
+    <div class="todo">
+        <h1>Todo List <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSP9Jq7UaK1wZHGAlSJoHXhy9Xbsl0YwPY5hcm4_7CSew&s"></h1>
+        <EditForm Model="todo">
+            <input class="task-entry" type="text" placeholder="Enter Task" @bind-value="todo.Descript">
+            <button @onclick="Add">Add</button>
+        </EditForm>
+        <div class="list-cont">
+            @foreach (var task in todos)
+            {
+                <div class="tasks">
+                    <h5>
+                        <input type="checkbox" />
+                        @if (task != editingTask)
+                        {
+                            @task.Descript
+                        }
+                        else
+                        {
+                            <EditForm Model="editingTask" style="display: inline">
+                                <input class="task-entry" type="text" @bind-value="editingTask.Descript" />
+                            </EditForm>
+                        }
+                    </h5>
+                    <div>
+                        @if (task == editingTask)
+                        {
+                            <i class="fas fa-save" @onclick="SaveEdit"></i>
+                            <i class="fas fa-times" @onclick="CancelEdit"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-edit" @onclick="()=>BeginEdit(task)"></i>
+                            <i class="fas fa-trash" @onclick="()=>Delete(task)"></i>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    List<TodoModel> todos{ get; set; } = new List<TodoModel>();
+    TodoModel todo = new TodoModel();
+    TodoModel editingTask = null; // Add this variable to track the task being edited
+
+    protected override void OnInitialized()
+    {
+        Get();
+        base.OnInitialized();
+    }
+
+    void Add()
+    {
+        TodoDal.Insert(todo);
+        todo.Descript = string.Empty;
+        Get();
+    }
+
+    void Get()
+    {
+        todos = TodoDal.GetData();
+    }
+
+    void Delete(TodoModel t)
+    {
+        TodoDal.DeleteData(t);
+        Get();
+    }
+
+    void Update(TodoModel t)
+    {
+        TodoDal.UpdateData(t);
+        Get();
+    }
+
+    void BeginEdit(TodoModel task)
+    {
+        editingTask = task;
+    }
+
+    void SaveEdit()
+    {
+        if (editingTask != null)
+        {
+            TodoDal.UpdateData(editingTask);
+            editingTask = null;
+            Get();
+        }
+    }
+
+    void CancelEdit()
+    {
+        editingTask = null;
+    }
+
+}
